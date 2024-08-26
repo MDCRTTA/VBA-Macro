@@ -1,0 +1,471 @@
+Function CheckYoteiPercent() As String
+    Dim soruceSheet As Worksheet
+    Dim lastRowInSourceSheet, i, j As Long
+    Dim TotalTime As Double
+    Dim memeberName, message As String
+    
+    Application.ScreenUpdating = False
+    Set sourceSheet = ThisWorkbook.Sheets("メンバー工数分析")
+    lastRowInSourceSheet = sourceSheet.Cells(sourceSheet.Rows.count, "H").End(xlUp).Row
+    TotalTime = 0
+    
+    For i = 3 To lastRowInSourceSheet
+         memeberName = sourceSheet.Cells(i, "H").Value
+            For j = 9 To 14
+                 TotalTime = TotalTime + CDbl(sourceSheet.Cells(i, j).Value)
+                 If TotalTime > 100 Then
+                   message = "The total 予定工数 % of  " & memeberName & " is  " & totalSum & "Exceed 100 %!!!!!. Please Check in メンバー工数分析 Sheet"
+                   CheckYoteiPercent = message
+                   Exit Function
+                 ElseIf TotalTime <= 0 Then
+                   message = "予定工数 percent of  " & memeberName & " is Not Filled!!!!.  Please Check in メンバー工数分析 Sheet"
+                   CheckYoteiPercent = message
+                   Exit Function
+                 Else
+                    CheckYoteiPercent = ""
+                 End If
+           Next j
+           TotalTime = 0
+    Next i
+End Function
+
+
+ Public Sub CopyYoteiData()
+        Dim sourceSheet As Worksheet
+        Dim destSheet, formSheet As Worksheet
+        Dim lastColumnInSourceSheet, startCopyDataColumnInSourceSheet, lastRowInSourceSheet As Long
+        Dim lastColumnInDestSheet, startPasteDataColumnInDestSheet, startDataRowToFill As Long
+        Dim i, j As Integer
+        Dim EmployeeList As New Collection
+        Dim Employee As New Collection
+        Dim currentMonth, lastMonth, fillMonth, allWorkingDayInThisMonth  As Variant
+        Dim isFound As Boolean
+        Dim YoteiKousuuDataCheckMsg As String
+        
+        Set sourceSheet = ThisWorkbook.Sheets("メンバー工数分析")
+        Set destSheet = ThisWorkbook.Sheets("プロジェクト工数分析")
+        Set formSheet = ThisWorkbook.Sheets("FormSheet")
+        
+        currentMonth = Trim(formSheet.range("E4").Value)
+        allWorkingDayInThisMonth = Trim(formSheet.range("E7").Value)
+        
+        'Call CheckYoteiPercent
+        YoteiKousuuDataCheckMsg = Trim(CheckYoteiPercent)
+        If Not YoteiKousuuDataCheckMsg = "" Then
+          MsgBox YoteiKousuuDataCheckMsg
+          Exit Sub
+        End If
+        
+        'check month and working day is filled
+        If currentMonth = "" Then
+            formSheet.range("E4").NumberFormat = "yyyy/mm/dd"
+            MsgBox "Fill Month data is Not Correct !!!" & vbCrLf & _
+                   "Fill current  Month in Cell" & "  E4" & " of  [FormSheet] sheet by clicking [Ctrl + Plus]"
+            'Application.Goto Worksheets("FormSheet").range("E4"), False
+            Exit Sub
+        End If
+        
+        If allWorkingDayInThisMonth = "" Or allWorkingDayInThisMonth = "0" Or Not IsNumeric(allWorkingDayInThisMonth) Then
+            'formSheet.range("E7").Value = ""
+            formSheet.range("E7").NumberFormat = "General"
+            MsgBox "Fill Working Days data may be  incorrect or Not Filled" & vbCrLf & _
+                   "Fill Currently Working Days  with Number in   Cell " & "  E7" & "  [FormSheet] sheet "
+            'Application.Goto Worksheets("FormSheet").range("E7"), True
+            Exit Sub
+        ElseIf CDbl(allWorkingDayInThisMonth) < 5 Or CDbl(allWorkingDayInThisMonth) > 25 Then
+            formSheet.range("E7").NumberFormat = "General"
+            MsgBox "Filled Working Days May be wrong " & vbCrLf & _
+                    "Fill Currently Working Days  with Number in  Cell" & "  E7" & "  [FormSheet] sheet " & vbCrLf & _
+                    "Filled data should be between 10 ~ 25 "
+                    Exit Sub
+        End If
+        
+        lastColumnInSourceSheet = sourceSheet.Cells(2, Columns.count).End(xlToLeft).Column
+        
+        lastColumnInDestSheet = destSheet.Cells(2, Columns.count).End(xlToLeft).Column
+        startDataRowToFill = destSheet.Cells(destSheet.Rows.count, "E").End(xlUp).Row + 1
+        
+        startCopyDataColumnInSourceSheet = 8
+        currentDataRowToCopy = destSheet.Cells(destSheet.Rows.count, "E").End(xlUp).Row + 1
+        
+        'Check monthly data already filled
+        Dim searchRange As range
+        Set searchRange = destSheet.range("A2:A" & destSheet.Cells(destSheet.Rows.count, "A").End(xlUp).Row)
+        isFound = False
+        
+        For Each cell In searchRange
+            If Trim(cell.Value) = currentMonth Then
+                isFound = True
+                Exit For
+            End If
+        Next cell
+        
+        'Copy Fill Yotei % data To プロジェクト工数分析 sheet
+        If lastColumnInSourceSheet < 9 Then
+            MsgBox "No Data to fill !! Please Check your filled　your Kousuu Yotei data!!!"
+            Exit Sub
+        ElseIf IsEmpty(sourceSheet.Cells(3, "H").Value) Then
+            MsgBox " Filled 予定 Data not correct !! Please Fill 予定 Data Correctly!!!"
+            Exit Sub
+        ElseIf isFound Then
+            MsgBox "You Already Copied This Month Yotei Data !!!"
+            Exit Sub
+        Else
+            lastRowInSourceSheet = sourceSheet.Cells(sourceSheet.Rows.count, "H").End(xlUp).Row
+            lastMonth = destSheet.Cells(destSheet.Cells(destSheet.Rows.count, "A").End(xlUp).Row, 1).Value
+            Dim destinationColumn As Long
+            For i = 3 To lastRowInSourceSheet
+            
+                destinationColumn = 2
+                destSheet.Cells(startDataRowToFill, 1).Value = currentMonth
+                destSheet.Cells(startDataRowToFill, 3).Value = allWorkingDayInThisMonth
+                destSheet.Cells(startDataRowToFill, 4).Value = CInt(allWorkingDayInThisMonth) * 7.75
+                For j = 8 To lastColumnInSourceSheet
+                        If destinationColumn = 2 Then
+                            destSheet.Cells(startDataRowToFill, destinationColumn).Value = sourceSheet.Cells(i, j).Value
+                        Else
+                            destSheet.Cells(startDataRowToFill, destinationColumn).Value = CStr(sourceSheet.Cells(i, j).Value) + "%"
+                            destSheet.Cells(startDataRowToFill, destinationColumn + 2).Value = (sourceSheet.Cells(i, j).Value / 100) * (allWorkingDayInThisMonth * 7.75)
+                        End If
+                        
+                        If j = 8 Then
+                            destinationColumn = destinationColumn + 3
+                        Else
+                            destinationColumn = destinationColumn + 4
+                        End If
+                Next j
+                startDataRowToFill = startDataRowToFill + 1
+            Next i
+            MsgBox "Copied 予定工数　Data Successfully!!!"
+        End If
+    End Sub
+  Public Sub CaluclateMonthlyJisekiKoutsuuDynamically()
+        Dim sourceSheet, bunnseikiSheet, destSheet, formSheet As Worksheet
+        Dim lastKouSuukubunColumnIn工数分析Sheet, lastRowMemberKoutsuu, lastRowOfDesitnationSheet As Long
+        Dim lastDataFilledYoteiColumn, lastDataFilledJisekiColoumn, lastFilledWorkingDayDataRow As Long
+        Dim i, j, k, kubun As Long
+        Dim allWorkingDayInThisMonth, yoteiDate As Variant
+        
+        
+        Set sourceSheet = ThisWorkbook.Sheets("メンバー工数集計")
+        Set destSheet = ThisWorkbook.Sheets("プロジェクト工数分析")
+        Set bunnseikiSheet = ThisWorkbook.Sheets("工数分析")
+        Set formSheet = ThisWorkbook.Sheets("FormSheet")
+        
+        allWorkingDayInThisMonth = Trim(formSheet.range("E7").Value)
+        lastFilledWorkingDayDataRow = destSheet.Cells(sourceSheet.Rows.count, 3).End(xlUp).Row
+        yoteiDate = Trim(destSheet.Cells(lastFilledWorkingDayDataRow, "C").Value)
+        
+        If yoteiDate <> Trim(formSheet.range("E7").Value) Then
+           MsgBox "Filled Working Day in incorrect! " & vbCrLf & _
+                   "予定 Working Daya is " & yoteiDate
+           formSheet.range("E7").NumberFormat = "General"
+           Exit Sub
+        ElseIf allWorkingDayInThisMonth = "" Or Not IsNumeric(allWorkingDayInThisMonth) Then
+            'formSheet.range("E7").Value = ""
+            MsgBox "Fill Working Days For Currently Month with Number in [FormSheet] sheet "
+            'Application.Goto Worksheets("FormSheet").range("E7"), True
+            Exit Sub
+        End If
+        
+        'Call other function
+        Call CalculatePJNaiAndPJGaiKousuuData
+        
+        'Set lastRowCount For each using Sheet "メンバー工数集計" / プロジェクト工数分析 工数分析
+        lastKouSuukubunColumnIn工数分析Sheet = bunnseikiSheet.Cells(1, Columns.count).End(xlToLeft).Column  '工数分析の First Row (
+        lastRowMemberKoutsuu = sourceSheet.Cells(sourceSheet.Rows.count, "E").End(xlUp).Row
+        lastRowOfDesitnationSheet = destSheet.Cells(destSheet.Rows.count, 8).End(xlUp).Row
+        
+        
+        lastDataFilledYoteiColumn = destSheet.Cells(destSheet.Rows.count, "G").End(xlUp).Row
+        lastDataFilledJisekiColoumn = destSheet.Cells(destSheet.Rows.count, "H").End(xlUp).Row 'H is start column in destination sheet to paste
+        
+        
+        Dim memberDataRow, KoutsuuKubun, count As Long
+        Dim currentName, Name As String
+        
+        Dim KubunArray() As Variant
+        Dim KubunArrayIndex As Long               'user for looping of each 工数分析 name array
+        Dim TotalTime As Double
+        
+        Dim currentValue As Variant
+        Dim searchValue As String
+        Dim targetColumnInDestinationSheet, targetRowInDestinationSheet As Long 'to use in pasting destination sheet
+        
+        TotalTime = 0
+        count = 0                           ' used for column index increament
+        targetColumnInDestinationSheet = 8  ' assingn starting column to paste data
+        targetRowInDestinationSheet = destSheet.Cells(destSheet.Rows.count, 8 + (count * 4)).End(xlUp).Row
+        
+        memberDataRow = 6  'Set メンバー工数集計 のメンバー工数 start Data Row
+        Dim MemberName, MemberNameOfCurrentRow As String
+        Dim result As Integer
+        Dim totalWorkingHour As Double
+        
+        MemberName = sourceSheet.Cells(memberDataRow, "C").Value
+        
+        lastWorkingHourDataRow = destSheet.Cells(destSheet.Rows.count, "D").End(xlUp).Row
+        
+        If lastRowOfDesitnationSheet < 3 And IsNull(destSheet.Cells(lastWorkingHourDataRow, "D").Value) Then
+            MsgBox "Firsｔly Copy Yotei Data !!!!"
+            Exit Sub
+        ElseIf lastDataFilledYoteiColumn = lastDataFilledJisekiColoumn Then
+            MsgBox "Firsｔly Copy Yotei Data !!!!"
+            Exit Sub
+        ElseIf lastWorkingHourDataRow > 2 And Not IsEmpty(destSheet.Cells(lastWorkingHourDataRow, "D").Value) Then
+            totalWorkingHour = CDbl(destSheet.Cells(lastWorkingHourDataRow, "D").Value)
+        Else
+            MsgBox "Firsｔly Copy Yotei Data !!!!"
+            Exit Sub
+        End If
+        
+        
+        For i = 1 To lastKouSuukubunColumnIn工数分析Sheet
+        
+            'check　工数分析　and save in each array
+            KoutsuuKubun = bunnseikiSheet.Cells(bunnseikiSheet.Rows.count, i).End(xlUp).Row
+            ReDim KubunArray(1 To KoutsuuKubun)
+            KubunArrayIndex = 1
+            For j = 2 To KoutsuuKubun
+                    currentValue = bunnseikiSheet.Cells(j, i).Value
+                    If Not IsEmpty(currentValue) Then                ' Check if the cell is not empty
+                        KubunArray(KubunArrayIndex) = currentValue
+                        KubunArrayIndex = KubunArrayIndex + 1
+                    End If
+            Next j
+            ReDim Preserve KubunArray(1 To KubunArrayIndex - 1) ' Resize the array to remove empty elements (if any)
+            
+            'check kubun in kubun array
+            'Dim element As Variant
+            'For Each element In KubunArray
+               ' Debug.Print element   ' Print each value to the Immediate Window (Ctrl+G to view)
+            'Next element
+                        
+            count = count + 1
+            
+            'Calculate メンバー工数 from メンバー工数集計 sheet
+            While memberDataRow <= lastRowMemberKoutsuu + 1
+            
+                MemberNameOfCurrentRow = sourceSheet.Cells(memberDataRow, "C").Value
+                
+               'make decision to Fill  data to  Destination Sheet
+                If memberDataRow > 6 And MemberNameOfCurrentRow <> "" And MemberNameOfCurrentRow <> MemberName Then
+                
+                    destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet).Value = TotalTime
+                    
+                    If TotalTime = 0 Then
+                        destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet - 2).Value = CStr(Format((TotalTime), "0.00") + "%")
+                    Else
+                        destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet - 2).Value = CStr(Format((TotalTime / totalWorkingHour) * 100, "0.00") + "%")
+                    End If
+                    
+                    MemberName = MemberNameOfCurrentRow
+                    TotalTime = 0
+                    targetRowInDestinationSheet = targetRowInDestinationSheet + 1
+                    
+                ElseIf memberDataRow > lastRowMemberKoutsuu Then
+                    destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet).Value = TotalTime
+                    
+                    If TotalDevelopTime = 0 Then
+                        destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet - 2).Value = CStr(Format((TotalTime), "0.00") + "%")
+                    Else
+                        destSheet.Cells(targetRowInDestinationSheet + 1, targetColumnInDestinationSheet - 2).Value = CStr(Format((TotalTime / totalWorkingHour) * 100, "0.00") + "%")
+                    End If
+                
+                    MemberName = MemberNameOfCurrentRow
+                    TotalTime = 0
+                    targetRowInDestinationSheet = destSheet.Cells(destSheet.Rows.count, 8 + (count * 4)).End(xlUp).Row  'set next column starting row
+                End If
+                
+                'Check 工数分析 And Sum in related 工数分析
+                searchValue = sourceSheet.Cells(memberDataRow, "E").Value
+                For k = LBound(KubunArray) To UBound(KubunArray)
+                    If KubunArray(k) = searchValue Then
+                        TotalTime = TotalTime + CDbl(sourceSheet.Cells(memberDataRow, "F").Value) 'to check f column as dynamic
+                        Exit For
+                    End If
+                Next k
+                
+                memberDataRow = memberDataRow + 1
+            Wend
+            
+            memberDataRow = 6 'Reset memberDataRow in member koutsuu file
+            targetColumnInDestinationSheet = targetColumnInDestinationSheet + 4
+        
+        Next i
+        MsgBox "Copy 　memeber's　実績 data Successfully"
+    End Sub
+
+Public Sub CopyMemberKousuuData()
+    Dim FileToOpen As Variant
+    Dim OpenBook As Workbook
+    Dim sourceSheet, destinationSheet As Worksheet
+    Dim lastRow As Long
+    Dim targetRow As Long
+    Dim lastColumn As Long
+    Dim sourceRange As range
+    Dim destinationRange As range
+    Dim monthLabel As String
+    Dim range As range
+    
+    Application.ScreenUpdating = False
+    
+    Call DeleteMemberKouusuuData
+   
+    'Opening Target File
+    FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+    
+    If FileToOpen <> False Then
+    Set OpenBook = Application.Workbooks.Open(FileToOpen)
+    
+    ' Set the source sheet (the sheet you want to copy from)
+    Set sourceSheet = OpenBook.Sheets("メンバー工数集計")
+    
+    ' Set the target sheet (the sheet you want to paste to)
+    Set destinationSheet = ThisWorkbook.Sheets("メンバー工数集計")
+    
+    
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.count, 5).End(xlUp).Row '5 (作業区分 row count)
+    
+    ' Column F (last column of メンバー工数集計 file)
+    lastColumn = 6
+    destinationSheet.Cells(4, 4).Value = sourceSheet.Cells(2, 13)
+    
+    
+    If lastRow > 5 Then
+        For targetRow = 6 To lastRow
+                Set sourceRange = sourceSheet.range(sourceSheet.Cells(targetRow, 1), sourceSheet.Cells(targetRow, lastColumn))
+                Set destinationRange = destinationSheet.range(destinationSheet.Cells(targetRow, 1), destinationSheet.Cells(targetRow, lastColumn))
+                destinationRange.Value = sourceRange.Value
+        Next targetRow
+    End If
+ 
+    OpenBook.Close False
+ 
+    End If
+    Application.ScreenUpdating = True
+    
+
+End Sub
+
+Private Function DeleteMemberKouusuuData()
+        Dim lastRow As Long
+        Dim targetRow As Long
+        Dim destinationSheet As Worksheet
+        Set destinationSheet = ThisWorkbook.Sheets("メンバー工数集計")
+        
+        ' Find the last row with data in column A
+        lastRow = ThisWorkbook.Sheets("メンバー工数集計").Cells(Rows.count, "E").End(xlUp).Row
+        
+        ' Loop through each row from bottom to top and delete
+        For targetRow = lastRow To 6 Step -1
+            destinationSheet.Rows(targetRow).Delete
+        Next targetRow
+        
+        destinationSheet.range("D4").ClearContents
+End Function
+ 
+Private Function CalculatePJNaiAndPJGaiKousuuData()
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet, formSheet As Worksheet
+    Dim lastRow As Long
+    Dim rowIndex As Long
+    Dim columnIndex As Long
+    Dim i As Integer
+    Dim workingDays As Variant
+    Dim TotalPJ内工数TotalPJ外工数, WorkingHour As Double
+    Dim memberKoutsuuMonthName As String
+    Dim currentmonthName As String
+    Dim targetMonthName As String
+     
+    Set sourceSheet = ThisWorkbook.Sheets("メンバー工数集計")
+    Set formSheet = ThisWorkbook.Sheets("FormSheet")
+    Set destinationSheet = ThisWorkbook.Sheets("月別プロジェクト工数集計")
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.count, "E").End(xlUp).Row
+    
+    memberKoutsuuMonthName = CStr(ThisWorkbook.Sheets("メンバー工数集計").range("D4").Value)
+    currentmonthName = ""
+    
+    TotalPJ内工数 = 0
+    TotalPJ外工数 = 0
+    columnIndex = 4
+    rowIndex = 1
+    
+    'workingDays = Trim(ThisWorkbook.Sheets("メンバー工数分析").range("F2").Value)
+    workingDays = Trim(formSheet.range("E7").Value)
+    
+    If IsEmpty(ThisWorkbook.Sheets("メンバー工数集計").range("D4").Value) Then
+        MsgBox "Copy monthly メンバー工数 data firstly!!!! "
+        Exit Function
+    Else
+        'Find and Copy currentmonthName
+        For i = Len(memberKoutsuuMonthName) To 0 Step -1
+          If Mid(memberKoutsuuMonthName, i, 1) = "/" Then
+                Exit For
+            Else
+                currentmonthName = currentmonthName & Mid(memberKoutsuuMonthName, i, 1)
+            End If
+        Next i
+        
+        targetMonthName = StrReverse(currentmonthName)
+        
+    If workingDays = "" Then
+            MsgBox "Fill Working Days For Currently Month with Number in [FormSheet] sheet "
+        'Application.Goto Worksheets("FormSheet").range("E7"), True
+        Exit Function
+    ElseIf Not IsNumeric(workingDays) Then
+        'formSheet.range("E7").Value = ""
+        'sourceSheet.range("F2").Value = ""
+        'Application.Goto Worksheets("FormSheet").range("E7"), True
+        MsgBox "Fill Working Days For Currently Month with Number in [FormSheet] sheet  "
+        Exit Function
+    End If
+     
+    WorkingHour = CDbl(workingDays) * 7.75
+    'Find souce cell index to Paste
+    Select Case targetMonthName
+        Case "4"
+            rowIndex = 2
+        Case "5"
+            rowIndex = 3
+        Case "6"
+            rowIndex = 4
+        Case "7"
+            rowIndex = 5
+        Case "8"
+            rowIndex = 6
+        Case "9"
+            rowIndex = 7
+        Case "10"
+            rowIndex = 8
+        Case "11"
+            rowIndex = 9
+        Case "12"
+            rowIndex = 10
+        Case "1"
+            rowIndex = 11
+        Case "2"
+            rowIndex = 12
+        Case "3"
+            rowIndex = 13
+        Case "8"
+    End Select
+    
+    'Check PJ内工数　or PJ外工数
+    For i = 6 To lastRow
+        Select Case sourceSheet.Cells(i, 5).Value
+        Case "マナー委員会", "イベント委員会", "ブランディング委員会", "朝礼", "日本語学校", "IT学校", "LMT", "Presentation準備", "OJT", "外出", "空き"
+            TotalPJ外工数 = TotalPJ外工数 + CDbl(sourceSheet.Cells(i, 6).Value) / WorkingHour 'To get人月
+        Case Else
+            TotalPJ内工数 = TotalPJ内工数 + CDbl(sourceSheet.Cells(i, 6).Value) / WorkingHour 'To get人月
+        End Select
+    Next i
+    
+    destinationSheet.Cells(rowIndex, columnIndex).Value = TotalPJ内工数
+    destinationSheet.Cells(rowIndex, columnIndex + 1).Value = TotalPJ外工数
+    End If
+    
+    
+End Function
+
+
