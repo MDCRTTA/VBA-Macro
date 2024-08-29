@@ -1,0 +1,356 @@
+Sub CopyFuguaiData()
+
+Dim FileToOpen As Variant
+ Dim OpenBook As Workbook
+ Application.ScreenUpdating = False
+   
+ 'Opening Target File
+ FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+ 
+ If FileToOpen <> False Then
+ Set OpenBook = Application.Workbooks.Open(FileToOpen)
+ 
+ 'Copy data from target sheet with range
+ 'Change Range as you want
+ 
+ OpenBook.Sheets("不具合").Range("B4:J276").Copy
+ 
+ 'Paster Copied data to targert sheet with start point
+ Workbooks("プロジェクト評価レポート").Worksheets("不具合").Range("A5").PasteSpecial xlPasteValues
+ OpenBook.Close False
+ 
+ End If
+ Application.ScreenUpdating = True
+ 
+ 
+ End Sub
+ -------------------------------------------------------------------------------------------------------------------
+ 
+ Sub CopyAllFuguaiData()
+
+    Dim FileToOpen As Variant
+    Dim OpenBook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet As Worksheet
+    Dim lastRow As Long
+    Dim targetRow As Long
+    Dim lastColumn As Long
+    Dim sourceRange As Range
+    Dim destinationRange As Range
+    
+    Application.ScreenUpdating = False
+   
+    'Opening Target File
+    FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+    
+    If FileToOpen <> False Then
+    Set OpenBook = Application.Workbooks.Open(FileToOpen)
+    
+    ' Set the source sheet (the sheet you want to copy from)
+    Set sourceSheet = OpenBook.Sheets("不具合")
+    
+    ' Set the target sheet (the sheet you want to paste to)
+    Set destinationSheet = ThisWorkbook.Sheets("不具合")
+    
+    
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.Count, 2).End(xlUp).Row
+    
+    ' Column J(last column of PMO file)
+    lastColumn = 10
+    
+    If lastRow > 4 Then
+    
+        'row loop
+        For targetRow = 5 To lastRow
+                
+                Set sourceRange = sourceSheet.Range(sourceSheet.Cells(targetRow, 1), sourceSheet.Cells(targetRow, lastColumn))
+                Set destinationRange = destinationSheet.Range(destinationSheet.Cells(targetRow, 1), destinationSheet.Cells(targetRow, lastColumn))
+                destinationRange.Value = sourceRange.Value
+                
+       Next targetRow
+    
+    End If
+    
+ 
+    OpenBook.Close False
+ 
+    End If
+    Application.ScreenUpdating = True
+    
+End Sub
+-------------------------------------------------------------------------------------------------------------------------
+
+ Sub CopyMemberKousuuData()
+
+ Dim FileToOpen As Variant
+ Dim OpenBook As Workbook
+ Application.ScreenUpdating = False
+   
+ 'Opening Target File
+ FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+ 
+ If FileToOpen <> False Then
+ Set OpenBook = Application.Workbooks.Open(FileToOpen)
+ 
+ 'Copy data from target sheet with range
+ 'Change Range as you want
+ 
+ OpenBook.Sheets("メンバー工数集計").Range("A4:F240").Copy
+ 
+ 'Paster Copied data to targert sheet with start point
+ Workbooks("プロジェクト評価レポート").Worksheets("メンバー工数").Range("A5").PasteSpecial xlPasteValues
+ OpenBook.Close False
+ 
+ End If
+ Application.ScreenUpdating = True
+ 
+ 
+ End Sub
+ 
+  Sub CopyAllMemeberKousuuData()
+
+    Dim FileToOpen As Variant
+    Dim OpenBook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet As Worksheet
+    Dim lastRow As Long
+    Dim targetRow As Long
+    Dim lastColumn As Long
+    Dim sourceRange As Range
+    Dim destinationRange As Range
+    
+    Application.ScreenUpdating = False
+   
+    'Opening Target File
+    FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+    
+    If FileToOpen <> False Then
+    Set OpenBook = Application.Workbooks.Open(FileToOpen)
+    
+    ' Set the source sheet (the sheet you want to copy from)
+    Set sourceSheet = OpenBook.Sheets("メンバー工数集計")
+    
+    ' Set the target sheet (the sheet you want to paste to)
+    Set destinationSheet = ThisWorkbook.Sheets("メンバー工数集計")
+    
+    
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.Count, 5).End(xlUp).Row '5 (作業区分 row count)
+    
+    ' Column F (last column of メンバー工数集計 file)
+    lastColumn = 6
+    
+    If lastRow > 5 Then
+    
+        'row loop
+        For targetRow = 6 To lastRow
+                
+                Set sourceRange = sourceSheet.Range(sourceSheet.Cells(targetRow, 1), sourceSheet.Cells(targetRow, lastColumn))
+                Set destinationRange = destinationSheet.Range(destinationSheet.Cells(targetRow, 1), destinationSheet.Cells(targetRow, lastColumn))
+                destinationRange.Value = sourceRange.Value
+                
+       Next targetRow
+    
+    End If
+    
+ 
+    OpenBook.Close False
+ 
+    End If
+    Application.ScreenUpdating = True
+    
+End Sub
+
+-----------------------------------------------------------------------------------------------------------------------
+Sub CopyReviewShitekiData()
+
+Dim FileToOpen As Variant
+ Dim OpenBook As Workbook
+ Application.ScreenUpdating = False
+   
+ 'Opening Target File
+ FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+ 
+ If FileToOpen <> False Then
+ Set OpenBook = Application.Workbooks.Open(FileToOpen)
+ 
+ 'Copy data from target sheet with range
+ 'Change Range as you want
+ 
+ OpenBook.Sheets("レビュー指摘").Range("B4:M584").Copy
+ 
+ 'Paster Copied data to targert sheet with start point
+ Workbooks("プロジェクト評価レポート").Worksheets("不具合").Range("A5").PasteSpecial xlPasteValues
+ OpenBook.Close False
+ 
+ End If
+ Application.ScreenUpdating = True
+ 
+ 
+ End Sub
+
+Sub CopyAllReviewShitekiData()
+
+    Dim FileToOpen As Variant
+    Dim OpenBook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet As Worksheet
+    Dim lastRow As Long
+    Dim targetRow As Long
+    Dim lastColumn As Long
+    Dim sourceRange As Range
+    Dim destinationRange As Range
+    
+    Application.ScreenUpdating = False
+   
+    'Opening Target File
+    FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+    
+    If FileToOpen <> False Then
+    Set OpenBook = Application.Workbooks.Open(FileToOpen)
+    
+    ' Set the source sheet (the sheet you want to copy from)
+    Set sourceSheet = OpenBook.Sheets("レビュー指摘")
+    
+    ' Set the target sheet (the sheet you want to paste to)
+    Set destinationSheet = ThisWorkbook.Sheets("レビュー指摘")
+    
+    
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.Count, 2).End(xlUp).Row '5 (状態 row count)
+    
+    ' Column F (last column( M) of PMO file の レビュー指摘 シート )
+    lastColumn = 13
+    
+    If lastRow > 5 Then
+    
+        'row loop
+        For targetRow = 6 To lastRow
+                
+                Set sourceRange = sourceSheet.Range(sourceSheet.Cells(targetRow, 1), sourceSheet.Cells(targetRow, lastColumn))
+                Set destinationRange = destinationSheet.Range(destinationSheet.Cells(targetRow, 1), destinationSheet.Cells(targetRow, lastColumn))
+                destinationRange.Value = sourceRange.Value
+                
+       Next targetRow
+    
+    End If
+    
+ 
+    OpenBook.Close False
+ 
+    End If
+    Application.ScreenUpdating = True
+    
+End Sub
+
+-------------------------------------------
+
+Sub CopyNouHinngoFuguaiData()
+ Dim FileToOpen As Variant
+ Dim OpenBook As Workbook
+ Application.ScreenUpdating = False
+   
+ 'Opening Target File
+ FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+ 
+ If FileToOpen <> False Then
+ Set OpenBook = Application.Workbooks.Open(FileToOpen)
+ 
+ 'Copy data from target sheet with range
+ 'Change Range as you want
+ 
+ OpenBook.Sheets("納品後不具合").Range("B4:M584").Copy
+ 
+ 'Paster Copied data to targert sheet with start point
+ Workbooks("プロジェクト評価レポート").Worksheets("納品後不具合").Range("A5").PasteSpecial xlPasteValues
+ OpenBook.Close False
+ 
+ End If
+ Application.ScreenUpdating = True
+End Sub
+
+
+-----------------------------------------------------
+Sub CopyHinnshitusData()
+
+ Dim FileToOpen As Variant
+ Dim OpenBook As Workbook
+ Application.ScreenUpdating = False
+   
+ 'Opening Target File
+ FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+ 
+ If FileToOpen <> False Then
+ Set OpenBook = Application.Workbooks.Open(FileToOpen)
+ 
+ 'Copy data from target sheet with range
+ 'Change Range as you want
+ 
+ OpenBook.Sheets("品質データ").Range("A5:AC159").Copy
+ 
+ 'Paster Copied data to targert sheet with start point
+ Workbooks("プロジェクト評価レポート").Worksheets("品質管理データ").Range("A5").PasteSpecial xlPasteValues
+ OpenBook.Close False
+ 
+ End If
+ Application.ScreenUpdating = True
+ 
+ 
+ End Sub
+
+
+Sub CopyNouhinngoFuguaiData()
+
+    Dim FileToOpen As Variant
+    Dim OpenBook As Workbook
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet As Worksheet
+    Dim lastRow As Long
+    Dim targetRow As Long
+    Dim lastColumn As Long
+    Dim sourceRange As Range
+    Dim destinationRange As Range
+    
+    Application.ScreenUpdating = False
+   
+    'Opening Target File
+    FileToOpen = Application.GetOpenFilename(Title:="Browse for your file & Import Range", FileFilter:="Excel Files(*.xls*),*xls")
+    
+    If FileToOpen <> False Then
+    Set OpenBook = Application.Workbooks.Open(FileToOpen)
+    
+    ' Set the source sheet (the sheet you want to copy from)
+    Set sourceSheet = OpenBook.Sheets("納品後不具合")
+    
+    ' Set the target sheet (the sheet you want to paste to)
+    Set destinationSheet = ThisWorkbook.Sheets("納品後不具合")
+    
+    
+    lastRow = sourceSheet.Cells(sourceSheet.Rows.Count, 2).End(xlUp).Row '5 (状態 row count)
+    
+    ' Column F (last column( L) of PMO 不具合 file の 納品後不具合シート )
+    lastColumn = 12
+    
+    If lastRow > 5 Then
+    
+        'row loop
+        For targetRow = 6 To lastRow
+                
+                Set sourceRange = sourceSheet.Range(sourceSheet.Cells(targetRow, 1), sourceSheet.Cells(targetRow, lastColumn))
+                Set destinationRange = destinationSheet.Range(destinationSheet.Cells(targetRow, 1), destinationSheet.Cells(targetRow, lastColumn))
+                destinationRange.Value = sourceRange.Value
+                
+       Next targetRow
+    End If
+ 
+    OpenBook.Close False
+ 
+    End If
+    Application.ScreenUpdating = True
+    
+End Sub
+
+-------------------------------------------------------------------------------------------
+
+
+
+
+
